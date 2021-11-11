@@ -1,6 +1,6 @@
 {
   "name": "database-js-xlsx",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Database-js wrapper for XLSX files",
   "main": "index.js",
   "scripts": {
@@ -22,8 +22,8 @@
   },
   "homepage": "https://github.com/mlaanderson/database-js-xlsx#readme",
   "dependencies": {
-    "lodash": "^4.17.14",
-    "node-sqlparser": "^1.0.2",
+    "lodash": "^4.17.21",
+    "node-sql-parser": "^3.9.4",
     "xlsx-populate": "^1.8.2"
   }
 }

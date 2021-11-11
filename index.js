@@ -1,7 +1,10 @@
-var XlsxPopulate = require('xlsx-populate');
-var parse = require('node-sqlparser').parse;
+const XlsxPopulate = require('xlsx-populate');
+const { Parser } = require('node-sql-parser');
 
-var addressRegex = /^(?:((?:[^!$]+)|(?:\'[^\']+'))\$)?([A-Z]{1,3}\d+)(?::([A-Z]{1,3}\d+))?$/;
+const addressRegex = /^(?:((?:[^!$]+)|(?:\'[^\']+'))\$)?([A-Z]{1,3}\d+)(?::([A-Z]{1,3}\d+))?$/;
+
+const parser = new Parser();
+const parse = sql => parser.astify(sql);
 
 class AddressParser {
     constructor(address) {
@@ -135,7 +138,7 @@ class XlsxTable {
 
 class XlsxDatabase {
     constructor(options) {
-        var self = this;
+        const self = this;
         let opts, defaults = {
             filename: null,
             data: null
@@ -210,7 +213,7 @@ class XlsxDatabase {
      */
     doWhere(where, row) {
         if (where === null) return true;
-        var self = this;
+        const self = this;
 
         function getVal(obj) {
             if (obj.type === "column_ref") return row[obj.column];
@@ -227,7 +230,7 @@ class XlsxDatabase {
         }
 
         function like2RegExp(like) {
-            var restring = like;
+            let restring = like;
             restring = restring.replace(/([\.\*\?\$\^])/g, "\\$1");
             restring = restring.replace(/(?:\\)?%/g, replaceIfNotPrecededBy('\\', '.*?'));
             restring = restring.replace(/(?:\\)?_/g, replaceIfNotPrecededBy('\\', '.'));
@@ -411,7 +414,7 @@ class XlsxDatabase {
             updateObj[item.column] = item.value.value;
         }
 
-        for (var rowNum = 0; rowNum < xlTable.height; rowNum++) {
+        for (let rowNum = 0; rowNum < xlTable.height; rowNum++) {
             let oRow = {};
             for (let n = 0; n < headers.length; n++) {
                 oRow[headers[n]] = raw[rowNum][n];
@@ -467,7 +470,7 @@ class XlsxDatabase {
         let headers = xlTable.headerText;
         let results = [];
 
-        for (var rowNum = 0; rowNum < xlTable.height; rowNum++) {
+        for (let rowNum = 0; rowNum < xlTable.height; rowNum++) {
             let oRow = {};
             for (let n = 0; n < headers.length; n++) {
                 oRow[headers[n]] = raw[rowNum][n];
@@ -488,7 +491,7 @@ class XlsxDatabase {
      * @memberof XlsxDatabase
      */
     runSQL(sql) {
-        var self = this;
+        let self = this;
         return new Promise((resolve, reject) => {
             this.ready().then(() => {
                 // we are now loaded
@@ -504,11 +507,11 @@ class XlsxDatabase {
                         sqlObj.type = 'delete';
                         delete sqlObj.columns;
                     } else if (err.found === '$') {
-                        sql = sql.substr(0, err.offset) + '.' + sql.substr(err.offset + 1);
+                        sql = sql.substr(0, err.location.start.offset) + '.' + sql.substr(err.location.start.offset + 1);
                         this.runSQL(sql).then(value => resolve(value)).catch(reason => reject(reason));
                         return;
                     } else if (err.found === ':') {
-                        sql = sql.substr(0, err.offset) + '_' + sql.substr(err.offset + 1);
+                        sql = sql.substr(0, err.location.start.offset) + '_' + sql.substr(err.location.start.offset + 1);
                         this.runSQL(sql).then(value => resolve(value)).catch(reason => reject(reason));
                         return;
                     } else {
