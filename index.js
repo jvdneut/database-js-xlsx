@@ -26,8 +26,12 @@ class XlsxTable {
         let range;
         let address;
 
-        if (from.database) {
-            address = from.database + '$' + from.table.replace(/_/g,':');
+				if(Array.isArray(from)) {
+					from = from[0];
+				}
+
+        if (from.db) {
+            address = from.db + '$' + from.table.replace(/_/g,':');
         } else if (from.table) {
             address = from.table.replace(/_/g, ':');
         } else {
@@ -427,6 +431,9 @@ class XlsxDatabase {
                 xlTable.update(rowNum, raw[rowNum]);
             }
         }
+        if(results.length > 0) {
+            this.isDirty = true;
+        }
         resolve(results);
     }
 
@@ -452,6 +459,9 @@ class XlsxDatabase {
             }
             xlTable.update(xlTable.height, dataArray);
             rows.push(data);
+        }
+        if(rows.length > 0) {
+            this.isDirty = true;
         }
         resolve(rows);
     }
@@ -480,6 +490,9 @@ class XlsxDatabase {
                 xlTable.delete(rowNum);
             }
         }
+        if(results.length > 0) {
+            this.isDirty = true;
+        }
         resolve(results);
     }
 
@@ -491,7 +504,7 @@ class XlsxDatabase {
      * @memberof XlsxDatabase
      */
     runSQL(sql) {
-        let self = this;
+        const self = this;
         return new Promise((resolve, reject) => {
             this.ready().then(() => {
                 // we are now loaded
@@ -570,7 +583,7 @@ class XlsxDatabase {
      * @memberof XlsxDatabase
      */
     close() {
-        if (this.filename) {
+        if (this.isDirty && this.filename) {
             // save out to a file
             return this.workbook.toFileAsync(this.filename);
         } else {
